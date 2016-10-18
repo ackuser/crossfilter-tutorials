@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>dc.js - Crossfiltering Example</title>
+  <meta charset="UTF-8">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.min.js"></script>  
+</head>
+<body>
+  <div id="data">
+  </div>
+  <script type="text/javascript">
+  //Getting Facts Into Crossfilter
+  var data = [
+    { name: "Rusty",  type: "human", legs: 2 },
+    { name: "Alex",   type: "human", legs: 2 },
+    { name: "Lassie", type: "dog",   legs: 4 },
+    { name: "Spot",   type: "dog",   legs: 4 },
+    { name: "Polly",  type: "bird",  legs: 2 },
+    { name: "Fiona",  type: "plant", legs: 0 }
+  ];
+
+  var livingThings = crossfilter(data);
+  var d = document.createElement("div");
+  d.innerHtml = data;
+  // debugger;
+  console.log(data);
+  //Calculating Totals
+  // How many living things are in my house?
+  var n = livingThings.groupAll().reduceCount().value();
+  console.log("There are " + n + " living things in my house.") // 6
+
+  // How many total legs are in my house?
+  var legs = livingThings.groupAll().reduceSum(function(fact) { return fact.legs; }).value()
+  console.log("There are " + legs + " legs in my house.") // 14
+
+  //Filtering
+  // Filter for dogs.
+  var typeDimension = livingThings.dimension(function(d) { return d.type; });
+  typeDimension.filter("dog")
+
+  var n = livingThings.groupAll().reduceCount().value();
+  console.log("There are " + n + " dogs in my house.") // 2
+
+  var legs = livingThings.groupAll().reduceSum(function(fact) {
+    return fact.legs;
+  }).value()
+  console.log("There are " + legs + " dog legs in my house.") // 8
+
+  // Clear the filter.
+  typeDimension.filterAll()
+
+  //Grouping with Crossfilter
+  // How many living things of each type are in my house?
+  console.log(typeDimension.group().reduceCount().all());
+  var countMeasure = typeDimension.group().reduceCount();
+  var a = countMeasure.top(4);
+  console.log("There are " + a[0].value + " " + a[0].key + "(s) in my house.");
+  console.log("There are " + a[1].value + " " + a[1].key + "(s) in my house.");
+  console.log("There are " + a[2].value + " " + a[2].key + "(s) in my house.");
+  console.log("There are " + a[3].value + " " + a[3].key + "(s) in my house.");
+
+
+  // How many legs of each type are in my house?
+  var legMeasure = typeDimension.group().reduceSum(function(fact) { return fact.legs; });
+  var a = legMeasure.top(4);
+  console.log("There are " + a[0].value + " " + a[0].key + " legs in my house.");
+  console.log("There are " + a[1].value + " " + a[1].key + " legs in my house.");
+  console.log("There are " + a[2].value + " " + a[2].key + " legs in my house.");
+  console.log("There are " + a[3].value + " " + a[3].key + " legs in my house.");
+
+  //Filtering Gotchas
+  // Filter for dogs.
+  typeDimension.filter("dog")
+
+  // How many living things of each type are in my house?
+  // You’d expect this to return 0 for anything other than dogs,
+  // but it doesn’t because the following statement ignores any
+  // filter applied to typeDimension:
+  var countMeasure = typeDimension.group().reduceCount();
+  var a = countMeasure.top(4);
+  console.log("There are " + a[0].value + " " + a[0].key + "(s) in my house.");
+  console.log("There are " + a[1].value + " " + a[1].key + "(s) in my house.");
+  console.log("There are " + a[2].value + " " + a[2].key + "(s) in my house.");
+  console.log("There are " + a[3].value + " " + a[3].key + "(s) in my house.");
+
+  // Filter for dogs.
+  var typeFilterDimension = livingThings.dimension(function(fact) { return fact.type; });
+  typeFilterDimension.filter("dog")
+
+  // Now this returns what you would expect.
+  var countMeasure = typeDimension.group().reduceCount();
+  var a = countMeasure.top(4);
+  console.log("There are " + a[0].value + " " + a[0].key + "(s) in my house.");
+  console.log("There are " + a[1].value + " " + a[1].key + "(s) in my house.");
+  console.log("There are " + a[2].value + " " + a[2].key + "(s) in my house.");
+  console.log("There are " + a[3].value + " " + a[3].key + "(s) in my house.");
+  // debugger;
+  </script>
+
+</body>
+</html>
